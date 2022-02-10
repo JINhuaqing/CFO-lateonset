@@ -1,4 +1,5 @@
-setwd("C:/Users/JINHU/Documents/ProjectCode/CFO-lateonset")
+#setwd("C:/Users/JINHU/Documents/ProjectCode/CFO-lateonset")
+setwd("/home/r5user5/MyResearch/CFO-lateonset")
 source("Lateonset_utils.R")
 source("utilities.R")
 
@@ -13,17 +14,16 @@ tite.dist <- 2
 accrual.dist <- 0
 init.dose=1
 add.args=list(CV=0.9, suspend=TRUE)
-design <- 3
+design <- 1
 res <- Simu.Fn(phi, ps, tau, cohortsize, ncohort, 
-                     accrual, tite.dist, accrual.dist, design=3, add.args=add.args)
+                     accrual, tite.dist, accrual.dist, design=design, add.args=add.args)
 
 ress <- list()
-for (i in 1:1000){
+for (i in 1:100){
 res <- Simu.Fn(phi, ps, tau, cohortsize, ncohort, 
                      accrual, tite.dist, accrual.dist, design=3, add.args=add.args)
 ress[[i]] <- res
 }
 length(ress)
-100- sum(phase1.post.fn(ress)$Selection)
 phase1.post.fn(ress)
 

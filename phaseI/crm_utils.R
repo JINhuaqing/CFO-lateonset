@@ -2,7 +2,7 @@ library(dfcrm)
 
 
 posterior <- function(alpha, p, y, d) {
-    sigma2 = 2 #I use 2, but in most of papers, they adopt variance = 1.34. Anyway, the results are similar
+    sigma2 = 1.34  #follow many papers.
     lik=1;
     for(i in 1:length(y))
     {
