@@ -37,6 +37,7 @@ phase.I.pretty.tb <- function(sum.all){
     errStops <- c()
     sub.nums <- c()
     DLT.rates <- c()
+    tol.times <- c()
     for (res in sum.all){
         rw <- paste0(round(res$Selection, 1), "(", round(res$Allocation, 1), ")")
         tb <- rbind(tb, rw)
@@ -44,6 +45,7 @@ phase.I.pretty.tb <- function(sum.all){
         sub.nums <- c(sub.nums, sum(res$tol.Subjs))
         errStops <- c(errStops, 100-sum(res$Selection))
         DLT.rates <- c(DLT.rates, res$DLTs)
+        tol.times <- c(tol.times, res$tol.time)
     }
     
     tb.df <- as.data.frame(tb)
@@ -54,6 +56,7 @@ phase.I.pretty.tb <- function(sum.all){
     tb.df["nSub"] <- round(sub.nums, 1)
     tb.df["DLT.rate"] <- round(DLT.rates, 1)
     tb.df["NonSel.rate"] <- round(errStops, 1)
+    tb.df["tol.time"] <- round(tol.times, 1)
     tb.df
 }
 
@@ -93,6 +96,7 @@ phase1.post.fn <- function(ress){
     Sel <- rep(0, ndose)
     toxs.cts <- rep(0, ndose)
     tol.Subjs <- 0
+    tol.time <- 0
     nonErrStops <- 0
     for (res in ress){
         if (res$MTD != 99){
@@ -102,6 +106,9 @@ phase1.post.fn <- function(ress){
         Allo <- Allo + res$dose.ns
         toxs.cts <- res$DLT.ns + toxs.cts
         tol.Subjs <- tol.Subjs + sum(res$dose.ns)
+        if (!is.null(res$total.time)){
+          tol.time <- res$total.time + tol.time
+        }
     }
     
     sum.v <- list(Allocation=Allo, Selection=Sel*100,
@@ -109,6 +116,7 @@ phase1.post.fn <- function(ress){
                   toxs.nums=toxs.cts,
                   DLTs = numTrials*100*sum(toxs.cts)/tol.Subjs,
                   tol.Subjs=tol.Subjs, errStop=100*(numTrials-nonErrStops),
+                  tol.time=tol.time,
                   tol.toxs=sum(toxs.cts))
     lapply(sum.v, function(i)i/numTrials)
 }
