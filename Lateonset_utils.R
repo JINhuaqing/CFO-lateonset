@@ -36,8 +36,10 @@ fracImpute <- function(enter.times, dlt.times, current.time, tau){
         }
         
     }
+    obsIdxs <- current.time >= assesstime
+    obsIdxs[yo==1] <- TRUE
   
-    res <- list(y.impute=ym, y.raw=yo)
+    res <- list(y.impute=ym, y.raw=yo, obsIdxs=obsIdxs)
     res
 }
 
@@ -82,17 +84,68 @@ TITEImpute <- function(enter.times, dlt.times, current.time, tau, dose.levels, n
         doseIdxs <- dose.levels == i
         if (sum(1-obsIdxs[doseIdxs]!=0)){
             y <- sum(yo[doseIdxs])
-            n <- sum(doseIdxs)
+            n <- sum(doseIdxs[obsIdxs==1])
             kpidxs <- doseIdxs & (obsIdxs!=1)
             ym.part <- TITEImpute.one(followup.times[kpidxs], tau, y, n, prior.paras)
             ym[kpidxs] <- ym.part
         }
     }
-    res <- list(y.impute=ym, y.raw=yo)
+    res <- list(y.impute=ym, y.raw=yo, obsIdxs=obsIdxs)
     res
     
 }
 
+
+TITEImpute2.one <- function(followup.times, tau, y, n, prior.paras){
+    #args:
+    #   followup.times: The follow-up times of the pending patients at the dose level
+    #   tau: Observing window size
+    #   y: Num of Observed DLT at the dose level 
+    #   n: Num of patients with observed results at the dose level
+    #   prior.paras: a vector of 2, prior when estimating ptilde
+    
+    #return: 
+    #  ym: imputed y 
+    
+    p.tilde <- (y+prior.paras[1])/(n+sum(prior.paras))
+    ym <- p.tilde * (1-followup.times/tau) /((1-p.tilde)+p.tilde * (1-followup.times/tau))
+    ym
+}
+
+TITEImpute2 <- function(enter.times, dlt.times, current.time, tau, dose.levels, ndose, prior.paras){
+    #args:
+    # enter.times: The enter times of the patients, a vector 
+    # dlt.times: The DLT times of the patients, if no DLT before tau, 0, a vector
+    # current.time: Current time point: a value
+    # tau: Observing window size
+    # dose.levels: dose level for each subject
+    # ndose: num of dose levels
+    # prior.paras: a vector of 2, prior when estimating ptilde
+    
+    #return:
+    # ym: Imputed y for the patient with no DLT and follow-up time < tau
+    
+    assesstime = enter.times + tau;	
+    followup.times <- current.time - enter.times
+    dlt.times[dlt.times==0]= tau+1;
+    yo <- (dlt.times<=tau)*(assesstime<=current.time)+(dlt.times<=(current.time-enter.times))*(current.time<assesstime);		
+    obsIdxs <- current.time >= assesstime
+    obsIdxs[yo==1] <- TRUE
+    ym <- yo
+    for (i in 1:ndose){
+        doseIdxs <- dose.levels == i
+        if (sum(1-obsIdxs[doseIdxs]!=0)){
+            y <- sum(yo[doseIdxs])
+            n <- sum(doseIdxs[obsIdxs==1])
+            kpidxs <- doseIdxs & (obsIdxs!=1)
+            ym.part <- TITEImpute2.one(followup.times[kpidxs], tau, y, n, prior.paras)
+            ym[kpidxs] <- ym.part
+        }
+    }
+    res <- list(y.impute=ym, y.raw=yo, obsIdxs=obsIdxs)
+    res
+    
+}
 #------------------------------------------------------------------------------------------
 
 # The function is to obtain the DLT results for each subject
@@ -396,7 +449,7 @@ CFOlateonset.next.dose <- function(curDose, phi, tau, impute.method,
     if (impute.method == 1){
         impute.res <- fracImpute(enter.times, dlt.times, current.t, tau)
     }else if(impute.method==2){
-        impute.res <-  TITEImpute(enter.times, dlt.times, current.t, tau, doses, ndose, c(phi/2, 1-phi/2))
+        impute.res <-  TITEImpute2(enter.times, dlt.times, current.t, tau, doses, ndose, c(phi/2, 1-phi/2))
     }
     
     # Move the dose level
@@ -412,6 +465,8 @@ CFOlateonset.next.dose <- function(curDose, phi, tau, impute.method,
         tover.doses[curDose:ndose] <- 1
     }
     
+    cy <- sum(y.impute[doses==curDose])
+    cn <- sum(doses==curDose)
     if (tover.doses[1] == 1){
         dose <- 0
     }else{
@@ -586,7 +641,7 @@ Simu.Fn <- function(phi, ps, tau, cohortsize, ncohort,
             
             assess.ts <- enter.times + tau;	
             followup.ts <- current.t - enter.times
-            y.raw <- (dlt.times1<=tau)*(assess.ts<=current.t)+(dlt.times<=(current.t-enter.times))*(current.t<assess.ts);		
+            y.raw <- (dlt.times1<=tau)*(assess.ts<=current.t)+(dlt.times1<=followup.ts)*(current.t<assess.ts);		
             crm.res <- titecrm(add.args$ps.prior, phi, y.raw, doses, followup=followup.ts, obswin=tau, conf.level=add.args$crmCI.CV)
             
             res <- list()
@@ -612,14 +667,17 @@ Simu.Fn <- function(phi, ps, tau, cohortsize, ncohort,
            y.raw <- impute.res$y.raw
            y.impute <- impute.res$y.impute
            
-           cy <- sum(y.impute[doses==curDose])
-           cn <- sum(doses==curDose)
+           cy1 <- sum(y.raw[doses==curDose])
+           cn1 <- sum((doses==curDose) & impute.res$obsIdxs)
            ### early stop
-           add.args <- c(list(y=cy, n=cn), add.args)
+           add.args <- c(list(y=cy1, n=cn1), add.args)
            if (overdose.fn(phi, add.args)){
                tover.doses[curDose:ndose] <- 1
            }
     
+           cy <- sum(y.impute[doses==curDose])
+           cn <- sum(doses==curDose)
+
            phat <- cy/cn
            phi1 <- phi * (1-add.args$boinEps)
            phi2 <- phi * (1+add.args$boinEps)
@@ -693,7 +751,7 @@ Simu.Fn <- function(phi, ps, tau, cohortsize, ncohort,
     }else{
         MTD <- 99
     }
-    res <- list(MTD=MTD, dose.ns=tns, DLT.ns=tys, ps=ps, target=phi, over.doses=tover.doses, total.time=current.t)
+    res <- list(MTD=MTD, dose.ns=tns, DLT.ns=tys, ps=ps, target=phi, total.time=current.t)
     res
 }
 
