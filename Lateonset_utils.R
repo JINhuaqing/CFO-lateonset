@@ -19,7 +19,13 @@ fracImpute <- function(enter.times, dlt.times, current.time, tau){
     assesstime = enter.times+tau;	
     dlt.times[dlt.times==0]= tau+1;
     yo = (dlt.times<=tau)*(assesstime<=current.time)+(dlt.times<=(current.time-enter.times))*(current.time<assesstime);		
-    if (sum(yo)==0)	{stop("fraction design takes effect when at least one DLT has been observed")}
+    No.impute <- FALSE
+    if (sum(yo)==0)	{
+        No.impute <- TRUE
+        ym <- yo
+
+    #stop("fraction design takes effect when at least one DLT has been observed")
+    }
     if (sum(yo)!=0){			
         
         otime = yo*dlt.times+(1-yo)*((current.time-enter.times)*(current.time<assesstime)+tau*(assesstime<=current.time))			
@@ -39,7 +45,7 @@ fracImpute <- function(enter.times, dlt.times, current.time, tau){
     obsIdxs <- current.time >= assesstime
     obsIdxs[yo==1] <- TRUE
   
-    res <- list(y.impute=ym, y.raw=yo, obsIdxs=obsIdxs)
+    res <- list(y.impute=ym, y.raw=yo, obsIdxs=obsIdxs, No.impute=No.impute)
     res
 }
 
@@ -57,6 +63,7 @@ TITEImpute.one <- function(followup.times, tau, y, n, prior.paras){
     
     p.tilde <- (y+prior.paras[1])/(n+sum(prior.paras))
     ym <- p.tilde * (1-followup.times/tau) /(1-p.tilde)
+    #ym[ym >1] <- 1 # trunc the value
     ym
 }
 
@@ -448,25 +455,32 @@ CFOlateonset.next.dose <- function(curDose, phi, tau, impute.method,
     ## Obtain effective results
     if (impute.method == 1){
         impute.res <- fracImpute(enter.times, dlt.times, current.t, tau)
+        y.raw <- impute.res$y.raw
+        y.impute <- impute.res$y.impute
+        if (impute.res$No.impute){
+            cn <- sum(doses==curDose)
+            # should be cn <- sum(doses==curDose & impute.res$obsIdxs)
+            cy <- sum(y.raw[doses==curDose])
+        }
+        else{
+            cn <- sum(doses==curDose)
+            cy <- sum(y.impute[doses==curDose])
+        }
     }else if(impute.method==2){
         impute.res <-  TITEImpute2(enter.times, dlt.times, current.t, tau, doses, ndose, c(phi/2, 1-phi/2))
+        y.raw <- impute.res$y.raw
+        y.impute <- impute.res$y.impute
+        
+        cy <- sum(y.impute[doses==curDose])
+        cn <- sum(doses==curDose)
     }
     
-    # Move the dose level
-    y.raw <- impute.res$y.raw
-    y.impute <- impute.res$y.impute
-    
-    ## CFO design
-    cy <- sum(y.impute[doses==curDose])
-    cn <- sum(doses==curDose)
     ### early stop
     add.args <- c(list(y=cy, n=cn), add.args)
     if (overdose.fn(phi, add.args)){
         tover.doses[curDose:ndose] <- 1
     }
     
-    cy <- sum(y.impute[doses==curDose])
-    cn <- sum(doses==curDose)
     if (tover.doses[1] == 1){
         dose <- 0
     }else{
@@ -495,7 +509,8 @@ CFOlateonset.next.dose <- function(curDose, phi, tau, impute.method,
         res <- list(dose=dose, tover.doses=tover.doses)
         return(res)
     }else{
-        return(dose)
+        res <- list(dose=dose)
+        return(res)
     }
 }
 
@@ -722,7 +737,11 @@ Simu.Fn <- function(phi, ps, tau, cohortsize, ncohort,
              chgidx <- add.set[which.min(abs(add.set-chgidx))]
              res$dose <- curDose + chgidx
            }
+        }else{
+            res <- list()
+            res$dose <- curDose
         }
+
         
         
         if (res$dose==0){
@@ -743,7 +762,7 @@ Simu.Fn <- function(phi, ps, tau, cohortsize, ncohort,
          tys <- c(tys, sum(y.raw[doses==j]))
     }
     if (earlystop==0){
-        if (design==1 | design==3){
+        if (design==1 | design==3 | design==4){
             MTD <- select.mtd(phi, tns, tys)$MTD
         }else if (design==2){
             MTD <- res$dose

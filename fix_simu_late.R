@@ -14,12 +14,12 @@ accrual <- 6
 tite.dist <- 2
 accrual.dist <- 1
 init.dose=1
-add.args=list(alp.prior=target, bet.prior=1-target, CV=0.95, suspend=F, crmCI.CV=0.95, impute.method=2)
+add.args=list(alp.prior=target, bet.prior=1-target, CV=0.95, suspend=F, crmCI.CV=0.90, impute.method=2)
 design <- 1
 #   design: the phase I design, 1: CFO, 2: TITE-CRM, 3:TITE-BOIN
 
 idx <- 1
-for (idx in 1:6){
+for (idx in 1:8){
 p.true <- p.trues[[idx]]
 
 run.fn <- function(i){
