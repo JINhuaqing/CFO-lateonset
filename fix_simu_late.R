@@ -4,7 +4,7 @@ library(magrittr)
 library(parallel)
 source("Lateonset_utils.R")
 source("utilities.R")
-source("./fixScs2.R")
+source("./fixScs3.R")
 
 
 nsimu <- 5000
@@ -14,7 +14,7 @@ accrual <- 6
 tite.dist <- 2
 accrual.dist <- 1
 init.dose=1
-add.args=list(alp.prior=target, bet.prior=1-target, CV=0.95, suspend=F, crmCI.CV=0.80, impute.method=2)
+add.args=list(alp.prior=target, bet.prior=1-target, CV=0.95, suspend=F, crmCI.CV=0.80, impute.method=1)
 design <- 1
 #   design: the phase I design, 1: CFO, 2: TITE-CRM, 3:TITE-BOIN
 
@@ -47,7 +47,7 @@ run.fn <- function(i){
 
 
 results <- mclapply(1:nsimu, run.fn, mc.cores=80)
-file.name <- paste0("./phaseI-late/results/", "Simu_", nsimu, "_fix2_",  idx, ".RData")
+file.name <- paste0("./phaseI-late/results/", "SimuFrac_", nsimu, "_fix3_",  idx, ".RData")
 save(results, file=file.name)
 
 crm.ress <- lapply(1:nsimu, function(i)results[[i]]$crm)
