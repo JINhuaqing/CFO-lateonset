@@ -19,7 +19,7 @@ design <- 1
 #   design: the phase I design, 1: CFO, 2: TITE-CRM, 3:TITE-BOIN
 
 idx <- 1
-for (idx in 1:8){
+for (idx in 2:8){
 p.true <- p.trues[[idx]]
 
 run.fn <- function(i){

@@ -36,8 +36,9 @@ fracImpute <- function(enter.times, dlt.times, current.time, tau){
         
         for (i in 1:length(yo)){
             if (current.time<assesstime[i] & yo[i]==0){
-                ym[i]=(kmfit$surv[tail(which(kmfit$time<=(current.time-assesstime[i]+tau+0.001)),n=1)]- kmfit$surv[tail(which(kmfit$time<=tau),n=1)])/
-                    kmfit$surv[tail(which(kmfit$time<=(current.time-assesstime[i]+tau+0.001)),n=1)]
+                ym[i]=(kmfit$surv[tail(which(kmfit$time<=(current.time-assesstime[i]+tau+0.00001)),n=1)]- kmfit$surv[tail(which(kmfit$time<=tau),n=1)])/
+                    kmfit$surv[tail(which(kmfit$time<=(current.time-assesstime[i]+tau+0.00001)),n=1)]
+
             }
         }
         
@@ -611,10 +612,10 @@ Simu.Fn <- function(phi, ps, tau, cohortsize, ncohort,
         if (accrual.dist==0){
             delta.times <- rep(0, cohortsize)
         }else if (accrual.dist == 1){
-            delta.times <- cumsum(c(0, runif(cohortsize-1, 0, 2*tau/accrual)))
+            delta.times <- cumsum(c(0, runif(cohortsize-1, 0,  2*tau/accrual)))
             
         }else if (accrual.dist == 2){
-            delta.times <- cumsum(c(0, rexp(cohortsize, rate=accrual/tau)))
+            delta.times <- cumsum(c(0, rexp(cohortsize-1, rate=accrual/tau)))
             
         }
         enter.times <- c(enter.times, current.t+delta.times)
