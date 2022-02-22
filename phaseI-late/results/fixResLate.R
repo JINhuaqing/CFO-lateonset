@@ -1,6 +1,6 @@
 setwd("C:/Users/JINHU/Documents/ProjectCode/CFO-lateonset")
 source("utilities.R")
-source("fixScs2.R")
+source("fixScs3.R")
 
 idx <- 1
 p.trues[[idx]]
@@ -8,22 +8,23 @@ nsimu <- 5000
 MTDs <- c()
 sum.alls <- list()
 for (idx in 1:8){
-    file.name <- paste0("./phaseI/results/", "Simu_", 5000, "_fix2_",  idx, ".RData")
-    load(file.name)
-    
-    crm.ress <- lapply(1:nsimu, function(i)results[[i]]$crm)
-    boin.ress <- lapply(1:nsimu, function(i)results[[i]]$boin)
-    cfo.ress <- lapply(1:nsimu, function(i)results[[i]]$cfo)
-    sum.all <- list(
-        CFO = phase1.post.fn(cfo.ress),
-        BOIN = phase1.post.fn(boin.ress),
-        CRM = phase1.post.fn(crm.ress)
-    )
-    MTDs <- c(MTDs, which.min(abs(p.trues[[idx]]-target)))
-    sum.alls[[idx]] <- sum.all
-    print(phase.I.pretty.tb(sum.all))
+file.name <- paste0("./phaseI-late/results/", "SimuFrac_", 5000, "_fix3_",  idx, ".RData")
+load(file.name)
+
+crm.ress <- lapply(1:nsimu, function(i)results[[i]]$crm)
+boin.ress <- lapply(1:nsimu, function(i)results[[i]]$boin)
+cfo.ress <- lapply(1:nsimu, function(i)results[[i]]$cfo)
+sum.all <- list(
+                CFO = phase1.post.fn(cfo.ress),
+                BOIN = phase1.post.fn(boin.ress),
+                CRM = phase1.post.fn(crm.ress)
+                )
+MTDs <- c(MTDs, which.min(abs(p.trues[[idx]]-target)))
+sum.alls[[idx]] <- sum.all
+print(phase.I.pretty.tb(sum.all))
     
 }
+
 
 
 OneRes.fn <- function(sum.all, nams, MTD){
@@ -90,8 +91,8 @@ plot.single.fix <- function(plot.res, m.nam, ylab="Percentage (%)", main=""){
     nams <- plot.res[["nams"]][1, ]
     plot(cur.plot.res[, 1], type = "b", col=1, lwd=2, lty=1, pch=1, 
          ylim=c(min(cur.plot.res)-0.02, max(cur.plot.res)+0.02), 
-         xlab="Scenarios", 
-         xaxt="n", ylab=ylab, main=main)
+             xlab="Scenarios", 
+             xaxt="n", ylab=ylab, main=main)
     lines(cur.plot.res[, 2], type = "b", col=2, lwd=2, lty=2, pch=2)
     lines(cur.plot.res[, 3], type = "b", col=3, lwd=2, lty=3, pch=3)
     axis(1, at=1:dim(cur.plot.res)[1], labels=1:dim(cur.plot.res)[1])
@@ -114,7 +115,7 @@ par(mfrow=c(1, 1))
 dev.off()
 par(mfrow=c(2, 2))
 plot.single.fix(plot.res, m.nam="overDose.sels", main="OverDose Selection")
-plot.single.fix(plot.res, m.nam="overDose.allos", ylab="Num of subjects", main="OverDose Allocation")
+plot.single.fix(plot.res, m.nam="overDose.allos.num", ylab="Num of subjects", main="OverDose Allocation")
 plot.single.fix(plot.res, m.nam="DLT.per", main="DLT Percentage")
 plot.single.fix(plot.res, m.nam="errStops", main="Non-Selection")
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
@@ -124,11 +125,12 @@ legend("bottom", toupper(nams), col=1:3, lty=1:3, pch=1:3, lwd=2,
 par(mfrow=c(1, 1))
 
 
-fig.name <- paste0("./phaseI/results/", "Simu_", nsimu, "_phi_", 100*target,  "_fix",  ".png")
+
+fig.name <- paste0("./phaseI-late/results/", "SimuFrac_", nsimu, "_phi_", 100*target,  "_fix",  ".png")
 png(filename=fig.name, unit="in", height=10, width=8, res=300)
 par(mfrow=c(3, 2), oma = c(2,1,1,1))
 plot.single.fix(plot.res, m.nam="MTD.sels", main="MTD Selection")
-plot.single.fix(plot.res, m.nam="MTD.allos",  main="MTD Allocation")
+plot.single.fix(plot.res, m.nam="MTD.allos", main="MTD Allocation")
 plot.single.fix(plot.res, m.nam="overDose.sels", main="Overdose Selection")
 plot.single.fix(plot.res, m.nam="overDose.allos",  main="Overdose Allocation")
 plot.single.fix(plot.res, m.nam="DLT.per", main="Average DLT Rate")

@@ -272,7 +272,7 @@ prob.diff.fn.sep <- function(res, target=0.3){
 post.process.onemethod <- function(res, paras){
     tmtd <- paras$mtd
     target <- paras$target
-    ndose <- length(res$p.true)
+    ndose <- length(paras$p.true)
     rv <- rep(0, 7)
     rv[1] <- sum(res$MTD==tmtd)
     rv[2] <- res$dose.ns[tmtd]

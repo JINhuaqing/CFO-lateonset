@@ -9,7 +9,7 @@ flag <- 1
 for (diff in c(0.05, 0.07, 0.1, 0.15)){
 file.name <- paste0("./phaseI/results/", "Simu_", nsimu, "_phi_", 100*target,  "_random_", 100*diff,  ".RData")
 load(file.name)
-res.ls[[flag]] <-  post.process.random(results)
+res.ls[[flag]] <-  post.process.random(results)[c("cfo", "boin", "crm"), ]
 flag <- flag + 1
 }
 
@@ -40,11 +40,11 @@ singlePlot(Ress[[1]], main="MTD Selection")
 singlePlot(Ress[[2]], main="MTD Allocation")
 singlePlot(Ress[[3]], main="Overdose Selection")
 singlePlot(Ress[[4]], main="Overdose Allocation")
-singlePlot(Ress[[5]], main="Risk of High toxicity")
-singlePlot(Ress[[6]], main="Average DLT rate")
+singlePlot(Ress[[5]], main="Risk of High Toxicity")
+singlePlot(Ress[[6]], main="Average DLT Rate")
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
 plot(0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
-legend("bottom", toupper(colnames(cRes)), col=1:3, lty=1:3, pch=1:3, lwd=2, 
+legend("bottom", toupper(colnames(Ress[[1]])), col=1:3, lty=1:3, pch=1:3, lwd=2, 
        xpd=TRUE, horiz = TRUE, cex = 1, seg.len=1, bty = 'n')
 par(mfrow=c(1, 1))
 dev.off()
