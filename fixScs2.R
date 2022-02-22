@@ -1,4 +1,4 @@
-# scenarios from TITE-CRM original paper
+# scenarios from TITE-Boin original paper
 target <- 0.20
 ncohort <- 12
 cohortsize <- 3

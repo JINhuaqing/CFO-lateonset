@@ -5,9 +5,10 @@ source("utilities.R")
 source("Lateonset_utils.R")
 
 
-target <- 0.20
-mus <- c(0.37, 0.50, 0.66, 0.86)
-#mus <- c(0.26, 0.41, 0.56, 0.74)
+target <- 0.30
+nsimu <- 5000
+#mus <- c(0.37, 0.50, 0.66, 0.86)
+mus <- c(0.26, 0.41, 0.56, 0.74)
 ncohort <- 12
 cohortsize <- 3
 ndose <- 7
@@ -74,11 +75,10 @@ run.fn <- function(k){
 }
 
 
-nsimu <- 5000
 seeds <- 1:nsimu
-file.name <- paste0("./phaseI-late/results/", "Simu_", nsimu, "_phi_", 100*target,  "_random_", 100*diff,  ".RData")
+file.name <- paste0("./phaseI-late/results/", "TestSimu_", nsimu, "_phi_", 100*target,  "_random_", 100*diff,  ".RData")
 print(file.name)
 results <- mclapply(1:nsimu, run.fn, mc.cores=75)
-post.process.random(results)
+print(post.process.random(results))
 save(results, file=file.name)
 }

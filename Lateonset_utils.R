@@ -116,7 +116,10 @@ TITEImpute2.one <- function(followup.times, tau, y, n, prior.paras){
     #  ym: imputed y 
     
     p.tilde <- (y+prior.paras[1])/(n+sum(prior.paras))
+    #ym <- p.tilde * (1-followup.times/tau)
     ym <- p.tilde * (1-followup.times/tau) /((1-p.tilde)+p.tilde * (1-followup.times/tau))
+#    ym <- p.tilde * (1-followup.times/tau) /(1-p.tilde)
+#    ym[ym >1] <- 1 # trunc the value
     ym
 }
 
@@ -165,6 +168,8 @@ gen.tite<-function(dist=1, n, pi, tau=1, alpha=0.5){
     #   pi: Target DLT rate, pi=Pr(T<=tau)
     #   tau: Maximal window size
     #   alpha: Parameter for generete time
+    #Return:
+    #   if no DLT, tox.t=0
     ############ subroutines ############
     weib<-function(n, pi, pihalft)
     {
@@ -491,12 +496,12 @@ CFOlateonset.next.dose <- function(curDose, phi, tau, impute.method,
             cns <- c(NA, cn, sum(doses==2))
             cover.doses <- c(NA, tover.doses[1:2])
         }else if (curDose==ndose){
-            cys <- c(sum(y.impute[doses==(ndose-1)]), cy, NA)
-            cns <- c(sum(doses==(ndose-1)), cn, NA)
+            cys <- c(sum(y.impute[doses==(curDose-1)]), cy, NA)
+            cns <- c(sum(doses==(curDose-1)), cn, NA)
             cover.doses <- c(tover.doses[(curDose-1):curDose], NA)
         }else {
-            cys <- c(sum(y.impute[doses==(ndose-1)]), cy, sum(y.impute[doses==(ndose+1)]))
-            cns <- c(sum(doses==(ndose-1)), cn, sum(doses==(ndose+1)))
+            cys <- c(sum(y.impute[doses==(curDose-1)]), cy, sum(y.impute[doses==(curDose+1)]))
+            cns <- c(sum(doses==(curDose-1)), cn, sum(doses==(curDose+1)))
             cover.doses <- tover.doses[(curDose-1):(curDose+1)]
             
         }
