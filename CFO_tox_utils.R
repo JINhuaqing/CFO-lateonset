@@ -41,10 +41,11 @@ prob.int <- function(phi, y1, n1, y2, n2, alp.prior, bet.prior){
     fn.max <- function(x){
         pbeta(x, alp1, bet1)*dbeta(x, alp2, bet2)
     }
-    const.min <- integrate(fn.min, lower=0, upper=1)$value
-    const.max <- integrate(fn.max, lower=0, upper=1)$value
-    p1 <- integrate(fn.min, lower=0, upper=phi)$value/const.min
-    p2 <- integrate(fn.max, lower=0, upper=phi)$value/const.max
+    eps <- 1e-5
+    const.min <- integrate(fn.min, lower=0+eps, upper=1-eps)$value
+    const.max <- integrate(fn.max, lower=0+eps, upper=1-eps)$value
+    p1 <- integrate(fn.min, lower=0+eps, upper=phi)$value/const.min
+    p2 <- integrate(fn.max, lower=0+eps, upper=phi)$value/const.max
     
     list(p1=p1, p2=p2)
 }
