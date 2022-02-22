@@ -4,7 +4,7 @@ library(magrittr)
 library(parallel)
 source("Lateonset_utils.R")
 source("utilities.R")
-source("./fixScs3.R")
+source("./fixScs2.R")
 
 
 nsimu <- 5000
@@ -50,7 +50,7 @@ run.fn <- function(i){
 
 
 results <- mclapply(1:nsimu, run.fn, mc.cores=75)
-file.name <- paste0("./phaseI-late/results/", "Simu", nsimu, "_fix3_",  idx, ".RData")
+file.name <- paste0("./phaseI-late/results/", "Simu", nsimu, "_fix2_",  idx, ".RData")
 save(results, file=file.name)
 
 crm.ress <- lapply(1:nsimu, function(i)results[[i]]$crm)
