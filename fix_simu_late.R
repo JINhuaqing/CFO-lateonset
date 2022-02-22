@@ -15,7 +15,6 @@ tite.dist <- 2
 accrual.dist <- 1
 init.dose=1
 add.args=list(alp.prior=target, bet.prior=1-target, CV=0.95, suspend=F, crmCI.CV=0.80, impute.method=1)
-design <- 1
 #   design: the phase I design, 1: CFO, 2: TITE-CRM, 3:TITE-BOIN
 
 idx <- 1
