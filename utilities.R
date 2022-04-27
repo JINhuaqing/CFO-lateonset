@@ -15,7 +15,7 @@ OBD.level <- function(phi, phiE, p.true, pE.true){
         OBD <- 99
         return(OBD)
     }
-
+    
     OBD <- which.max(pE.true[1:MTD])
     return(OBD)
 }
@@ -107,12 +107,12 @@ phase1.post.fn <- function(ress){
         toxs.cts <- res$DLT.ns + toxs.cts
         tol.Subjs <- tol.Subjs + sum(res$dose.ns)
         if (!is.null(res$total.time)){
-          tol.time <- res$total.time + tol.time
+            tol.time <- res$total.time + tol.time
         }
     }
     
     sum.v <- list(Allocation=Allo, Selection=Sel*100,
-    #sum.v <- list(Allocation=numTrials*100*Allo/tol.Subjs, Selection=Sel*100,
+                  #sum.v <- list(Allocation=numTrials*100*Allo/tol.Subjs, Selection=Sel*100,
                   toxs.nums=toxs.cts,
                   DLTs = numTrials*100*sum(toxs.cts)/tol.Subjs,
                   tol.Subjs=tol.Subjs, errStop=100*(numTrials-nonErrStops),
@@ -151,22 +151,22 @@ phase12.post.fn <- function(ress){
 
 # return latex scr code for output
 latex.out.fn <- function(res, prefix, tidx, suffix=NULL){
-  MTDs <- res$MTDs.percent  
-  MTDs <- format(round(MTDs*100, 1), nsmall=1)
-  if (!missing(tidx)){
-      MTDs[tidx] <- paste0("\\bf{", MTDs[tidx], "}")
-  }
-  av.dose <- res$av.dose
-  tss <- res$t.dose
-  tdlt <- res$t.DLT
-  row1 <- paste("&", MTDs, collapse=" ") 
-  row1 <- paste(prefix, "& MTD \\%", row1, "\\\\"); 
-  
-  row2 <- paste("&", format(round(av.dose, 1), nsmall=1), collapse=" ") 
-  row2 <- paste("& ASN", row2, "&", format(round(tdlt, 1), nsmall=1), "&",
-                format(round(tss, 1), nsmall=1), "\\\\")
-  out <- paste(row1, "\n", row2, suffix)
-  cat(out)
+    MTDs <- res$MTDs.percent  
+    MTDs <- format(round(MTDs*100, 1), nsmall=1)
+    if (!missing(tidx)){
+        MTDs[tidx] <- paste0("\\bf{", MTDs[tidx], "}")
+    }
+    av.dose <- res$av.dose
+    tss <- res$t.dose
+    tdlt <- res$t.DLT
+    row1 <- paste("&", MTDs, collapse=" ") 
+    row1 <- paste(prefix, "& MTD \\%", row1, "\\\\"); 
+    
+    row2 <- paste("&", format(round(av.dose, 1), nsmall=1), collapse=" ") 
+    row2 <- paste("& ASN", row2, "&", format(round(tdlt, 1), nsmall=1), "&",
+                  format(round(tss, 1), nsmall=1), "\\\\")
+    out <- paste(row1, "\n", row2, suffix)
+    cat(out)
 }
 
 # Gnerate dose toxicity relations randomly
@@ -205,14 +205,14 @@ gen.rand.doses <- function(ndose, target, mu1=0.55, mu2=0.55, inv.fn=qnorm, fn=p
     
     if ((mtd.level-2)>0){
         for (i in (mtd.level-2):1){
-           eps.minus <- rnorm(1, mu1, sigma1)
-           raw.p.trues[i]  <- raw.p.trues[i+1] - eps.minus**2
+            eps.minus <- rnorm(1, mu1, sigma1)
+            raw.p.trues[i]  <- raw.p.trues[i+1] - eps.minus**2
         }
     }
     if ((mtd.level+2)<=ndose){
         for (j in (mtd.level+2):ndose){
-           eps.plus <- rnorm(1, mu2, sigma2)
-           raw.p.trues[j] <- raw.p.trues[j-1] + eps.plus**2
+            eps.plus <- rnorm(1, mu2, sigma2)
+            raw.p.trues[j] <- raw.p.trues[j-1] + eps.plus**2
         }
     }
     p.trues <- fn(raw.p.trues)
@@ -231,7 +231,7 @@ prob.diff.fn <- function(res, target=0.3){
     if (mtd!=1){
         diffs <- c(abs(p.trues[mtd-1]-target), diffs)
     }
-
+    
     if (mtd!=ndose){
         diffs <- c(abs(p.trues[mtd+1]-target), diffs)
     }
@@ -249,7 +249,7 @@ prob.diff.fn.sep <- function(res, target=0.3){
     if (mtd!=1){
         diffsL <- abs(p.trues[mtd-1]-target)
     }
-
+    
     if (mtd!=ndose){
         diffsU <- abs(p.trues[mtd+1]-target)
     }
@@ -289,10 +289,18 @@ post.process.onemethod <- function(res, paras){
     rv[5] <- sum((sum(res$DLT.ns)/sum(res$dose.ns))>target)
     rv[6] <- sum(res$DLT.ns)
     rv[7] <- sum(res$dose.ns)
-    names(rv) <- c(
-        "MTD Sel", "MTD Allo", "Over Sel", 
-        "Over Allo", "Risk of HT", "No DLT",
-        "No Subject")
+    if (!is.null(res$total.time)){
+        rv <- c(rv, res$total.time)
+        names(rv) <- c(
+            "MTD Sel", "MTD Allo", "Over Sel", 
+            "Over Allo", "Risk of HT", "No DLT",
+            "No Subject", "Duration")
+    }else{
+        names(rv) <- c(
+            "MTD Sel", "MTD Allo", "Over Sel", 
+            "Over Allo", "Risk of HT", "No DLT",
+            "No Subject")
+    }
     rv
     
 }
@@ -316,14 +324,28 @@ post.process.random <- function(results){
         res.all <- post.process.single(result) + res.all
     }
     res.all.df <- data.frame(res.all)
-    final.res <- transmute(res.all.df, 
-                           MTD.Sel=MTD.Sel/nsimu,
-                           MTD.Allo=MTD.Allo/No.Subject,
-                           Over.Sel=Over.Sel/nsimu,
-                           Over.Allo=Over.Allo/No.Subject,
-                           Risk.of.HT=Risk.of.HT/nsimu,
-                           PerDLT=No.DLT/No.Subject
-    )
+    if (is.null(res.all.df$Duration)){
+        
+        final.res <- transmute(res.all.df, 
+                               MTD.Sel=MTD.Sel/nsimu,
+                               MTD.Allo=MTD.Allo/No.Subject,
+                               Over.Sel=Over.Sel/nsimu,
+                               Over.Allo=Over.Allo/No.Subject,
+                               Risk.of.HT=Risk.of.HT/nsimu,
+                               PerDLT=No.DLT/No.Subject
+        )
+    }else{
+        final.res <- transmute(res.all.df, 
+                               MTD.Sel=MTD.Sel/nsimu,
+                               MTD.Allo=MTD.Allo/No.Subject,
+                               Over.Sel=Over.Sel/nsimu,
+                               Over.Allo=Over.Allo/No.Subject,
+                               Risk.of.HT=Risk.of.HT/nsimu,
+                               PerDLT=No.DLT/No.Subject, 
+                               Duration=Duration/nsimu
+        )
+        
+    }
     rownames(final.res) <- rownames(res.all.df)
     final.res
 }
@@ -331,32 +353,32 @@ post.process.random <- function(results){
 
 # function to plot the results under random scenarios
 res.plot.fn <- function(res, filename, M.names, is.save=TRUE, angle=45){
-  if (missing(filename)){
-    is.save <- FALSE
-  }
-  myBarplot <- function(data, labels_vec, rot_angle, main, ylim=NULL) {
-    nM <- dim(res)[1]
-    plt <- barplot(data, col=2:(nM+1), xaxt="n", main=main, ylim=ylim)
-    text(plt, par("usr")[3], labels = labels_vec, srt = rot_angle, adj = c(1.1,1.1), 
-         xpd = TRUE, cex=0.8, font=1) 
-  }
-  if (missing(M.names)){
-      M.names <- c("Butterfly-BB", "Butterfly-CRM", "Butterfly-BB-CRM", "CRM", "BOIN")
-  }
-  if (is.save){
-    png(filename, width=360*2, height=240*2)
-  }
-  par(mfrow=c(2, 3))
-  myBarplot(res$MTD.Sel, main="MTD selection %", labels_vec=M.names, rot_angle=angle)
-  myBarplot(res$MTD.Allo, main="MTD Allocation %", labels_vec=M.names, rot_angle=angle)
-  myBarplot(res$Over.Sel, main="Overdose selection %", labels_vec=M.names, rot_angle=angle)
-  myBarplot(res$Over.Allo, main="Overdose Allocation %", labels_vec=M.names, rot_angle=angle)
-  myBarplot(res$Risk.of.HT, main="Risk of high toxicity %", labels_vec=M.names, rot_angle=angle)
-  myBarplot(res$PerDLT, main="Avergae DLT rate %", labels_vec=M.names, rot_angle=angle)
-  par(mfrow=c(1, 1))
-  if (is.save){
-    dev.off()
-  }
+    if (missing(filename)){
+        is.save <- FALSE
+    }
+    myBarplot <- function(data, labels_vec, rot_angle, main, ylim=NULL) {
+        nM <- dim(res)[1]
+        plt <- barplot(data, col=2:(nM+1), xaxt="n", main=main, ylim=ylim)
+        text(plt, par("usr")[3], labels = labels_vec, srt = rot_angle, adj = c(1.1,1.1), 
+             xpd = TRUE, cex=0.8, font=1) 
+    }
+    if (missing(M.names)){
+        M.names <- c("Butterfly-BB", "Butterfly-CRM", "Butterfly-BB-CRM", "CRM", "BOIN")
+    }
+    if (is.save){
+        png(filename, width=360*2, height=240*2)
+    }
+    par(mfrow=c(2, 3))
+    myBarplot(res$MTD.Sel, main="MTD selection %", labels_vec=M.names, rot_angle=angle)
+    myBarplot(res$MTD.Allo, main="MTD Allocation %", labels_vec=M.names, rot_angle=angle)
+    myBarplot(res$Over.Sel, main="Overdose selection %", labels_vec=M.names, rot_angle=angle)
+    myBarplot(res$Over.Allo, main="Overdose Allocation %", labels_vec=M.names, rot_angle=angle)
+    myBarplot(res$Risk.of.HT, main="Risk of high toxicity %", labels_vec=M.names, rot_angle=angle)
+    myBarplot(res$PerDLT, main="Avergae DLT rate %", labels_vec=M.names, rot_angle=angle)
+    par(mfrow=c(1, 1))
+    if (is.save){
+        dev.off()
+    }
 }
 
 res.ggplot.fn <- function(res, filename, main, M.names, is.save=TRUE, angle=NULL){
@@ -364,17 +386,17 @@ res.ggplot.fn <- function(res, filename, main, M.names, is.save=TRUE, angle=NULL
         is.save <- FALSE
     }
     myggBarplot <- function(data, angle, main, theylim) {
-         g <- ggplot(mapping=aes(x=M.names, y=data, fill=M.names))
-         g <- g + geom_bar(stat="identity") + guides(fill=FALSE) + ggtitle(main)
-         g <- g + theme(axis.title = element_blank())
-         if (!is.null(angle)){
-             g <- g + theme(axis.text.x = element_text(angle=angle, vjust=1, hjust=1))
-         }
-         if (!missing(theylim)){
-             g <- g + ylim(theylim)
-         }
-             
-         g
+        g <- ggplot(mapping=aes(x=M.names, y=data, fill=M.names))
+        g <- g + geom_bar(stat="identity") + guides(fill=FALSE) + ggtitle(main)
+        g <- g + theme(axis.title = element_blank())
+        if (!is.null(angle)){
+            g <- g + theme(axis.text.x = element_text(angle=angle, vjust=1, hjust=1))
+        }
+        if (!missing(theylim)){
+            g <- g + ylim(theylim)
+        }
+        
+        g
     }
     if (missing(M.names)){
         M.names <- c("Butterfly-BB", "Butterfly-CRM", "Butterfly-BB-CRM", "CRM", "BOIN")

@@ -8,20 +8,23 @@ nsimu <- 5000
 MTDs <- c()
 sum.alls <- list()
 for (idx in 1:8){
-file.name <- paste0("./phaseI-late/results/", "SimuFrac_", 5000, "_fix3_",  idx, ".RData")
-load(file.name)
-
-crm.ress <- lapply(1:nsimu, function(i)results[[i]]$crm)
-boin.ress <- lapply(1:nsimu, function(i)results[[i]]$boin)
-cfo.ress <- lapply(1:nsimu, function(i)results[[i]]$cfo)
-sum.all <- list(
-                CFO = phase1.post.fn(cfo.ress),
-                BOIN = phase1.post.fn(boin.ress),
-                CRM = phase1.post.fn(crm.ress)
-                )
-MTDs <- c(MTDs, which.min(abs(p.trues[[idx]]-target)))
-sum.alls[[idx]] <- sum.all
-print(phase.I.pretty.tb(sum.all))
+    file.name <- paste0("./phaseI-late/results/", "Simu", 5000, "_fix3_",  idx, ".RData")
+    load(file.name)
+    
+    crm.ress <- lapply(1:nsimu, function(i)results[[i]]$crm)
+    boin.ress <- lapply(1:nsimu, function(i)results[[i]]$boin)
+    cfo.ress <- lapply(1:nsimu, function(i)results[[i]]$cfo)
+    fcfo.ress <- lapply(1:nsimu, function(i)results[[i]]$fcfo)
+    sum.all <- list(
+        CFO = phase1.post.fn(cfo.ress),
+        fCFO = phase1.post.fn(fcfo.ress),
+        BOIN = phase1.post.fn(boin.ress),
+        CRM = phase1.post.fn(crm.ress)
+    )
+    MTDs <- c(MTDs, which.min(abs(p.trues[[idx]]-target)))
+    sum.alls[[idx]] <- sum.all
+    print(p.trues[[idx]])
+    print(phase.I.pretty.tb(sum.all))
     
 }
 
@@ -91,14 +94,17 @@ plot.single.fix <- function(plot.res, m.nam, ylab="Percentage (%)", main=""){
     nams <- plot.res[["nams"]][1, ]
     plot(cur.plot.res[, 1], type = "b", col=1, lwd=2, lty=1, pch=1, 
          ylim=c(min(cur.plot.res)-0.02, max(cur.plot.res)+0.02), 
-             xlab="Scenarios", 
-             xaxt="n", ylab=ylab, main=main)
-    lines(cur.plot.res[, 2], type = "b", col=2, lwd=2, lty=2, pch=2)
-    lines(cur.plot.res[, 3], type = "b", col=3, lwd=2, lty=3, pch=3)
+         xlab="Scenarios", 
+         xaxt="n", ylab=ylab, main=main)
+    for (ix in 2:(dim(plot.res$nams)[2])){
+        lines(cur.plot.res[, ix], type = "b", col=ix, lwd=ix, lty=ix, pch=ix)
+    }
+    #lines(cur.plot.res[, 3], type = "b", col=3, lwd=2, lty=3, pch=3)
     axis(1, at=1:dim(cur.plot.res)[1], labels=1:dim(cur.plot.res)[1])
 }
 
 nams <- c("CFO", "BOIN", "CRM")
+plt.nams <- c("TITE-CFO", "TITE-BOIN", "TITE-CRM")
 plot.res <- allRes.Fn(sum.alls, nams=nams, MTDs=MTDs)
 
 dev.off()
@@ -107,7 +113,7 @@ plot.single.fix(plot.res, m.nam="MTD.sels", main="MTD Selection")
 plot.single.fix(plot.res, m.nam="MTD.allos.num", ylab="Num of subjects", main="MTD Allocation")
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
 plot(0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
-legend("bottom", toupper(nams), col=1:3, lty=1:3, pch=1:3, lwd=2, 
+legend("bottom", toupper(nams), col=1:length(nams), lty=1:length(nams), pch=1:length(nams), lwd=2, 
        xpd=TRUE, horiz = TRUE, cex = 1, seg.len=1)
 par(mfrow=c(1, 1))
 
@@ -126,18 +132,18 @@ par(mfrow=c(1, 1))
 
 
 
-fig.name <- paste0("./phaseI-late/results/", "SimuFrac_", nsimu, "_phi_", 100*target,  "_fix",  ".png")
+fig.name <- paste0("./phaseI-late/results/", "SimuLate_", nsimu, "_phi_", 100*target,  "_fix3",  ".png")
 png(filename=fig.name, unit="in", height=10, width=8, res=300)
 par(mfrow=c(3, 2), oma = c(2,1,1,1))
-plot.single.fix(plot.res, m.nam="MTD.sels", main="MTD Selection")
-plot.single.fix(plot.res, m.nam="MTD.allos", main="MTD Allocation")
-plot.single.fix(plot.res, m.nam="overDose.sels", main="Overdose Selection")
-plot.single.fix(plot.res, m.nam="overDose.allos",  main="Overdose Allocation")
-plot.single.fix(plot.res, m.nam="DLT.per", main="Average DLT Rate")
-plot.single.fix(plot.res, m.nam="errStops", main="Non-Selection")
+plot.single.fix(plot.res, m.nam="MTD.sels", main="(A) MTD Selection")
+plot.single.fix(plot.res, m.nam="MTD.allos", main="(B) MTD Allocation")
+plot.single.fix(plot.res, m.nam="overDose.sels", main="(C) Overdose Selection")
+plot.single.fix(plot.res, m.nam="overDose.allos",  main="(D) Overdose Allocation")
+plot.single.fix(plot.res, m.nam="DLT.per", main="(E) Average DLT Rate")
+plot.single.fix(plot.res, m.nam="durations", main="(F) Average Trial Duration", ylab="Time (in months)")
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
 plot(0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
-legend("bottom", toupper(nams), col=1:3, lty=1:3, pch=1:3, lwd=2, 
+legend("bottom", toupper(plt.nams), col=1:3, lty=1:3, pch=1:3, lwd=2, 
        xpd=TRUE, horiz = TRUE, cex = 1, seg.len=1)
 par(mfrow=c(1, 1))
 dev.off()

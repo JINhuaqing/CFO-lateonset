@@ -1,6 +1,6 @@
 setwd("C:/Users/JINHU/Documents/ProjectCode/CFO-lateonset")
 source("utilities.R")
-source("fixScs2.R")
+source("fixScs3.R")
 
 idx <- 1
 p.trues[[idx]]
@@ -8,7 +8,7 @@ nsimu <- 5000
 MTDs <- c()
 sum.alls <- list()
 for (idx in 1:8){
-    file.name <- paste0("./phaseI/results/", "Simu_", 5000, "_fix2_",  idx, ".RData")
+    file.name <- paste0("./phaseI/results/", "Simu_", 5000, "_fix3_",  idx, ".RData")
     load(file.name)
     
     crm.ress <- lapply(1:nsimu, function(i)results[[i]]$crm)
@@ -124,15 +124,15 @@ legend("bottom", toupper(nams), col=1:3, lty=1:3, pch=1:3, lwd=2,
 par(mfrow=c(1, 1))
 
 
-fig.name <- paste0("./phaseI/results/", "Simu_", nsimu, "_phi_", 100*target,  "_fix",  ".png")
+fig.name <- paste0("./phaseI/results/", "Simu_", nsimu, "_phi_", 100*target,  "_fix3",  ".png")
 png(filename=fig.name, unit="in", height=10, width=8, res=300)
 par(mfrow=c(3, 2), oma = c(2,1,1,1))
-plot.single.fix(plot.res, m.nam="MTD.sels", main="MTD Selection")
-plot.single.fix(plot.res, m.nam="MTD.allos",  main="MTD Allocation")
-plot.single.fix(plot.res, m.nam="overDose.sels", main="Overdose Selection")
-plot.single.fix(plot.res, m.nam="overDose.allos",  main="Overdose Allocation")
-plot.single.fix(plot.res, m.nam="DLT.per", main="Average DLT Rate")
-plot.single.fix(plot.res, m.nam="errStops", main="Non-Selection")
+plot.single.fix(plot.res, m.nam="MTD.sels", main="(A) MTD Selection")
+plot.single.fix(plot.res, m.nam="MTD.allos",  main="(B) MTD Allocation")
+plot.single.fix(plot.res, m.nam="overDose.sels", main="(C) Overdose Selection")
+plot.single.fix(plot.res, m.nam="overDose.allos",  main="(D) Overdose Allocation")
+plot.single.fix(plot.res, m.nam="DLT.per", main="(E) Average DLT Rate")
+plot.single.fix(plot.res, m.nam="errStops", main="(F) Non-Selection")
 par(fig = c(0, 1, 0, 1), oma = c(0, 0, 0, 0), mar = c(0, 0, 0, 0), new = TRUE)
 plot(0, type = 'l', bty = 'n', xaxt = 'n', yaxt = 'n')
 legend("bottom", toupper(nams), col=1:3, lty=1:3, pch=1:3, lwd=2, 
