@@ -1,3 +1,5 @@
+# dlt.time: time to event, if 0, no event
+# delta.time, time interval of patiant arrive
 library(survival) # to obtain K-M curve
 library(BOIN) #mtd.select
 library(dfcrm) #TITE-CRM, getprior
@@ -449,7 +451,7 @@ CFOlateonset.next.dose <- function(curDose, phi, tau, impute.method,
     #   tau: maximal observing win size
     #   impute.method: impute method: 1: fractional design, 2: TITE-BOIN way
     #   enter.times: enter.times of each subject
-    #   dlt.times: enter.times of each subject, let 0 if no DLT, tau+1 if unobserved and obs win is not reached.
+    #   dlt.times: dlt.times of each subject, let 0 if no DLT
     #   current.t: The current time 
     #   doses: Dose level for each subject
     #   tover.doses: over dose index for each dose, 1 over-toxic, 0 safe

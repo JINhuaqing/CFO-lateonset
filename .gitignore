@@ -1,3 +1,6 @@
 *.swp
 *.png
 *.jpg
+.Rproj.user
+*.Rproj
+
