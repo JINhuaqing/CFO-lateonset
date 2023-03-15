@@ -1,5 +1,5 @@
 # dlt.time: time to event, if 0, no event
-# delta.time, time interval of patiant arrive
+# delta.time, time interval of patient arrive
 library(survival) # to obtain K-M curve
 library(BOIN) #mtd.select
 library(dfcrm) #TITE-CRM, getprior
@@ -529,10 +529,14 @@ CFOlateonset.next.dose <- function(curDose, phi, tau, impute.method,
 unObsRate.Fn <- function(res.times, enter.times, current.t, curDose, doses){
     followup.ts <- current.t - enter.times
     unObsIdx <- (followup.ts < tau) & (res.times > followup.ts)
-    mean(unObsIdx[doses==curDose])
+    return(mean(unObsIdx[doses==curDose]))
 }
 
 suspDelta.Fn <- function(dlt.times, enter.times, current.t, curDose, doses){
+    if (sum(doses==curDose)==0){
+      # to avoid the case where there is no doses==curDose
+      return(0)
+    }
     followup.ts <- current.t - enter.times
     res.times <- dlt.times
     res.times[dlt.times==0] <- tau
@@ -541,7 +545,7 @@ suspDelta.Fn <- function(dlt.times, enter.times, current.t, curDose, doses){
     for (delta.t in delta.ts.sorted){
         # add 0.0001 for rounding error in R
         unObsRate <- unObsRate.Fn(res.times, enter.times, current.t+delta.t+0.0001, curDose, doses)
-        if (unObsRate < 0.5){
+        if (unObsRate <= 0.5){
             return(delta.t)
         }
     }
@@ -682,8 +686,13 @@ Simu.Fn <- function(phi, ps, tau, cohortsize, ncohort,
         }else if (design==3){
            # TITE-BOIN
            if (add.args$suspend){
-              dlt.t <- suspDelta.Fn(dlt.times, enter.times, current.t, curDose, doses)
-              current.t <-  dlt.t + current.t
+             # Note that here we assume if suspending, the patient accrual is also suspended.
+             # In fact, for a more logic way, we should have two enter.times, 
+             # One is the patient-come time, one is the time of patients taking the drug
+             # When suspending, patients still come at a given rate.
+             # 
+              suspend.t <- suspDelta.Fn(dlt.times, enter.times, current.t, curDose, doses)
+              current.t <-  suspend.t + current.t
            }
            impute.res <-  TITEImpute(enter.times, dlt.times, current.t, tau, doses, ndose, c(phi/2, 1-phi/2))
     
