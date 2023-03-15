@@ -289,6 +289,8 @@ CFO.simu.fn <- function(phi, p.true, ncohort=12, init.level=1,
     }else{
         MTD <- 99
     }
-    list(MTD=MTD, dose.ns=tns, DLT.ns=tys, p.true=p.true, target=phi, over.doses=tover.doses)
+    list(MTD=MTD, dose.ns=tns, DLT.ns=tys, ps=p.true, target=phi, over.doses=tover.doses, total.time=-1)
+    #list(MTD=MTD, dose.ns=tns, DLT.ns=tys, p.true=p.true, target=phi, over.doses=tover.doses)
+    # I change it to make it compatible with TITE-CFO simulation
 }
 
