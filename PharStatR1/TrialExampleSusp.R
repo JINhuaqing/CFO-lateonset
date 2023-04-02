@@ -368,6 +368,7 @@ trial.pro
 cfo.res$enter.times[1:3]*30 
 cfo.res$enter.times[4]*30
 cfo.res$y.imputes[1]
+cfo.res$y.raws[1]
 cfo.res$cfo.ress[[1]]
 
 cfo.res$enter.times[1:6]*30 + 90
@@ -375,16 +376,9 @@ cfo.res$enter.times[7]*30
 cfo.res$y.imputes[2]
 cfo.res$cfo.ress[[2]]
 
-cfo.res$enter.times[1:9]*30 + 90
-cfo.res$enter.times[10]*30
-cfo.res$y.imputes[3]
-cfo.res$cfo.ress[[3]]
-
-cfo.res$enter.times[1:12]*30 + 90
-cfo.res$enter.times[13]*30
-cfo.res$y.imputes[4]
-cfo.res$cfo.ress[[4]]
-cfo.res$tover.dosess[4, ]
+cfo.res$enter.times[16]*30
+cfo.res$y.imputes[5]
+cfo.res$cfo.ress[[5]]
 
 cfo.res$total.time * 30
 cfo.res$MTD.res
